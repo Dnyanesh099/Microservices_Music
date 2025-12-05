@@ -1,0 +1,328 @@
+version: '3.8'
+
+services:
+  # ============================================
+  # Infrastructure Services
+  # ============================================
+  
+  # PostgreSQL Databases
+  postgres-artist:
+    image: postgres:16-alpine
+    container_name: postgres-artist
+    environment:
+      POSTGRES_DB: artistdb
+      POSTGRES_USER: artist
+      POSTGRES_PASSWORD: artist123
+    ports:
+      - "5432:5432"
+    volumes:
+      - artist-db-data:/var/lib/postgresql/data
+    networks:
+      - sonymusic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U artist"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-album:
+    image: postgres:16-alpine
+    container_name: postgres-album
+    environment:
+      POSTGRES_DB: albumdb
+      POSTGRES_USER: album
+      POSTGRES_PASSWORD: album123
+    ports:
+      - "5433:5432"
+    volumes:
+      - album-db-data:/var/lib/postgresql/data
+    networks:
+      - sonymusic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U album"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-streaming:
+    image: postgres:16-alpine
+    container_name: postgres-streaming
+    environment:
+      POSTGRES_DB: streamingdb
+      POSTGRES_USER: streaming
+      POSTGRES_PASSWORD: streaming123
+    ports:
+      - "5434:5432"
+    volumes:
+      - streaming-db-data:/var/lib/postgresql/data
+    networks:
+      - sonymusic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U streaming"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  postgres-playlist:
+    image: postgres:16-alpine
+    container_name: postgres-playlist
+    environment:
+      POSTGRES_DB: playlistdb
+      POSTGRES_USER: playlist
+      POSTGRES_PASSWORD: playlist123
+    ports:
+      - "5435:5432"
+    volumes:
+      - playlist-db-data:/var/lib/postgresql/data
+    networks:
+      - sonymusic-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U playlist"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis for Rate Limiting
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - sonymusic-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Zookeeper for Kafka
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: zookeeper
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - "2181:2181"
+    networks:
+      - sonymusic-network
+
+  # Kafka Message Broker
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    networks:
+      - sonymusic-network
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Zipkin for Distributed Tracing
+  zipkin:
+    image: openzipkin/zipkin:latest
+    container_name: zipkin
+    ports:
+      - "9411:9411"
+    networks:
+      - sonymusic-network
+    environment:
+      - STORAGE_TYPE=mem
+
+  # Prometheus for Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - sonymusic-network
+
+  # Grafana for Visualization
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+    networks:
+      - sonymusic-network
+    depends_on:
+      - prometheus
+
+  # ============================================
+  # Microservices
+  # ============================================
+
+  # Discovery Server (Eureka)
+  discovery-server:
+    build:
+      context: ./discovery-server
+      dockerfile: Dockerfile
+    container_name: discovery-server
+    ports:
+      - "8761:8761"
+    networks:
+      - sonymusic-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Config Server
+  config-server:
+    build:
+      context: ./config-server
+      dockerfile: Dockerfile
+    container_name: config-server
+    ports:
+      - "8888:8888"
+    networks:
+      - sonymusic-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # API Gateway
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    networks:
+      - sonymusic-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_DATA_REDIS_HOST=redis
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      zipkin:
+        condition: service_started
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 40s
+
+  # Artist Service
+  artist-service:
+    build:
+      context: ./artist-service
+      dockerfile: Dockerfile
+    container_name: artist-service
+    ports:
+      - "8081:8081"
+    networks:
+      - sonymusic-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-artist:5432/artistdb
+      - SPRING_DATASOURCE_USERNAME=artist
+      - SPRING_DATASOURCE_PASSWORD=artist123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      postgres-artist:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # Album Service
+  album-service:
+    build:
+      context: ./album-service
+      dockerfile: Dockerfile
+    container_name: album-service
+    ports:
+      - "8082:8082"
+    networks:
+      - sonymusic-network
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres-album:5432/albumdb
+      - SPRING_DATASOURCE_USERNAME=album
+      - SPRING_DATASOURCE_PASSWORD=album123
+      - SPRING_KAFKA_BOOTSTRAP_SERVERS=kafka:29092
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - MANAGEMENT_ZIPKIN_TRACING_ENDPOINT=http://zipkin:9411/api/v2/spans
+    depends_on:
+      discovery-server:
+        condition: service_healthy
+      postgres-album:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+networks:
+  sonymusic-network:
+    driver: bridge
+
+volumes:
+  artist-db-data:
+  album-db-data:
+  streaming-db-data:
+  playlist-db-data:
+  prometheus-data:
+  grafana-data:

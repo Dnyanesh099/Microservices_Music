@@ -1,0 +1,51 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'sonymusic-monitor'
+
+scrape_configs:
+  # Discovery Server
+  - job_name: 'discovery-server'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['discovery-server:8761']
+        labels:
+          application: 'discovery-server'
+
+  # Config Server
+  - job_name: 'config-server'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['config-server:8888']
+        labels:
+          application: 'config-server'
+
+  # API Gateway
+  - job_name: 'api-gateway'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['api-gateway:8080']
+        labels:
+          application: 'api-gateway'
+
+  # Artist Service
+  - job_name: 'artist-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['artist-service:8081']
+        labels:
+          application: 'artist-service'
+
+  # Album Service
+  - job_name: 'album-service'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['album-service:8082']
+        labels:
+          application: 'album-service'
+
+  # Prometheus itself
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

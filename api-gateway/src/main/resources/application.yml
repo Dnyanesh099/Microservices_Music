@@ -1,0 +1,154 @@
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        # Artist Service Routes
+        - id: artist-service
+          uri: lb://artist-service
+          predicates:
+            - Path=/api/artists/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: artistServiceCircuitBreaker
+                fallbackUri: forward:/fallback/artists
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
+        
+        # Album Service Routes
+        - id: album-service
+          uri: lb://album-service
+          predicates:
+            - Path=/api/albums/**,/api/tracks/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: albumServiceCircuitBreaker
+                fallbackUri: forward:/fallback/albums
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+        
+        # Streaming Service Routes
+        - id: streaming-service
+          uri: lb://streaming-service
+          predicates:
+            - Path=/api/streams/**,/api/analytics/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: streamingServiceCircuitBreaker
+                fallbackUri: forward:/fallback/streaming
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 50
+                redis-rate-limiter.burstCapacity: 100
+        
+        # Playlist Service Routes
+        - id: playlist-service
+          uri: lb://playlist-service
+          predicates:
+            - Path=/api/playlists/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: playlistServiceCircuitBreaker
+                fallbackUri: forward:/fallback/playlists
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+      
+      default-filters:
+        - AddRequestHeader=X-Request-Source, API-Gateway
+        - AddResponseHeader=X-Response-Time, ${response-time}
+
+server:
+  port: 8080
+
+# Eureka Client Configuration
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+# Redis Configuration for Rate Limiting
+spring.data.redis:
+  host: localhost
+  port: 6379
+
+# Resilience4j Circuit Breaker Configuration
+resilience4j:
+  circuitbreaker:
+    instances:
+      artistServiceCircuitBreaker:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+      albumServiceCircuitBreaker:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+      streamingServiceCircuitBreaker:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+      playlistServiceCircuitBreaker:
+        sliding-window-size: 10
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10000
+  timelimiter:
+    instances:
+      artistServiceCircuitBreaker:
+        timeout-duration: 3s
+      albumServiceCircuitBreaker:
+        timeout-duration: 3s
+      streamingServiceCircuitBreaker:
+        timeout-duration: 5s
+      playlistServiceCircuitBreaker:
+        timeout-duration: 3s
+
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,gateway
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+
+# Distributed Tracing
+management.zipkin.tracing.endpoint: http://localhost:9411/api/v2/spans
+
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    org.springframework.security: DEBUG
+    reactor.netty: INFO
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%X{traceId}/%X{spanId}] [%thread] %-5level %logger{36} - %msg%n"
