@@ -19,9 +19,6 @@
         <module>api-gateway</module>
         <module>artist-service</module>
         <module>album-service</module>
-        <module>streaming-service</module>
-        <module>playlist-service</module>
-        <module>notification-service</module>
     </modules>
 
     <properties>
@@ -171,6 +168,13 @@
                             </exclude>
                         </excludes>
                     </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>repackage</goal>
+                            </goals>
+                        </execution>
+                    </executions>
                 </plugin>
                 
                 <plugin>

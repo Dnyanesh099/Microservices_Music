@@ -8,7 +8,7 @@ echo =========================================
 echo.
 
 REM Create config repository directory
-set CONFIG_REPO_DIR=%USERPROFILE%\sonymusic-config-repo
+set CONFIG_REPO_DIR=%~dp0sonymusic-config-repo
 
 if exist "%CONFIG_REPO_DIR%" (
     echo Config repository already exists at %CONFIG_REPO_DIR%

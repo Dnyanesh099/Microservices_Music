@@ -9,7 +9,7 @@ echo "========================================="
 echo ""
 
 # Create config repository directory
-CONFIG_REPO_DIR="$HOME/sonymusic-config-repo"
+CONFIG_REPO_DIR="$(pwd)/sonymusic-config-repo"
 
 if [ -d "$CONFIG_REPO_DIR" ]; then
     echo "✓ Config repository already exists at $CONFIG_REPO_DIR"

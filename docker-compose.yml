@@ -1,4 +1,4 @@
-version: '3.8'
+
 
 services:
   # ============================================
@@ -183,8 +183,8 @@ services:
   # Discovery Server (Eureka)
   discovery-server:
     build:
-      context: ./discovery-server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: discovery-server/Dockerfile
     container_name: discovery-server
     ports:
       - "8761:8761"
@@ -193,7 +193,7 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8761/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -202,8 +202,8 @@ services:
   # Config Server
   config-server:
     build:
-      context: ./config-server
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: config-server/Dockerfile
     container_name: config-server
     ports:
       - "8888:8888"
@@ -212,11 +212,14 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://discovery-server:8761/eureka/
+      - SPRING_CLOUD_CONFIG_SERVER_GIT_URI=file:/config-repo
+    volumes:
+      - ./sonymusic-config-repo:/config-repo
     depends_on:
       discovery-server:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8888/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -225,8 +228,8 @@ services:
   # API Gateway
   api-gateway:
     build:
-      context: ./api-gateway
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: api-gateway/Dockerfile
     container_name: api-gateway
     ports:
       - "8080:8080"
@@ -245,7 +248,7 @@ services:
       zipkin:
         condition: service_started
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -254,8 +257,8 @@ services:
   # Artist Service
   artist-service:
     build:
-      context: ./artist-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: artist-service/Dockerfile
     container_name: artist-service
     ports:
       - "8081:8081"
@@ -277,7 +280,7 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
@@ -286,8 +289,8 @@ services:
   # Album Service
   album-service:
     build:
-      context: ./album-service
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: album-service/Dockerfile
     container_name: album-service
     ports:
       - "8082:8082"
@@ -309,7 +312,7 @@ services:
       kafka:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8082/actuator/health"]
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8082/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 5
