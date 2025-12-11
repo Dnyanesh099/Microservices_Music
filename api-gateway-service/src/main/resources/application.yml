@@ -27,7 +27,7 @@ spring:
           predicates:
             - Path=/api/search/**
           filters:
-            - StripPrefix=2
+            - StripPrefix=1
             - name: CircuitBreaker
               args:
                 name: searchServiceBreaker

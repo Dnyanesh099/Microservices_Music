@@ -1,12 +1,13 @@
 spring:
   application:
     name: search-service
-  elasticsearch:
-    uris: http://elasticsearch:9200
-eureka:
-  client:
-    service-url:
-      defaultZone: http://discovery-server:8761/eureka/
+
+  data:
+    elasticsearch:
+      client:
+        rest:
+          uris: http://elasticsearch:9200
+
   kafka:
     bootstrap-servers: kafka:9092
     consumer:
@@ -16,6 +17,13 @@ eureka:
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
         spring.json.trusted.packages: "*"
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: java.util.HashMap   # ✅ FIX — USE MAP
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
 
 server:
   port: 8082
