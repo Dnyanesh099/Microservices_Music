@@ -1,0 +1,34 @@
+# ==========================================
+# This is Dummy Data for Dev server how it is worked okkk
+# ==========================================
+
+spring:
+  application:
+    name: search-service
+
+  elasticsearch:
+    uris: https://search-sonymusic-dev.abcd1234.us-east-1.es.amazonaws.com
+
+  kafka:
+    bootstrap-servers:
+      - b-1.msk-devcluster.abcd.kafka.us-east-1.amazonaws.com:9092
+      - b-2.msk-devcluster.abcd.kafka.us-east-1.amazonaws.com:9092
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-dev:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+  tracing:
+    sampling:
+      probability: 1.0
+
+  zipkin:
+    tracing:
+      endpoint: https://xray.us-east-1.amazonaws.com

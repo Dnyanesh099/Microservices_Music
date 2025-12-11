@@ -1,0 +1,12 @@
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\event\TrackCreatedEvent.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\mapper\TrackMapper.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\repository\TrackRepository.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\repository\AlbumRepository.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\domain\Album.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\domain\Artist.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\repository\ArtistRepository.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\service\MetadataService.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\controller\MetadataController.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\MetadataServiceApplication.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\domain\Track.java
+C:\sonymusic-microservices\metadata-service\src\main\java\com\sonymusic\metadata\dto\TrackDTO.java

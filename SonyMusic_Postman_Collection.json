@@ -1,0 +1,68 @@
+{
+	"info": {
+		"_postman_id": "sonymusic-platform-id",
+		"name": "Sony Music Microservices",
+		"description": "Collection for testing Sony Music Metadata Platform",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Create Track (Metadata)",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"title\": \"Fortnight\",\n    \"isrc\": \"US-TSJ-24-00001\",\n    \"durationSec\": 220,\n    \"albumId\": \"3fa85f64-5717-4562-b3fc-2c963f66afa6\"\n}"
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/metadata/tracks",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"metadata",
+						"tracks"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Search Tracks (Elastic)",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "http://localhost:8080/api/search/tracks?query=Fortnight",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"search",
+						"tracks"
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "Fortnight"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}

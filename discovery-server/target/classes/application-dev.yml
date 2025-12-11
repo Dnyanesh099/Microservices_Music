@@ -1,0 +1,21 @@
+# ==========================================
+# This is Dummy Data for Dev server how it is worked okkk
+# ==========================================
+
+spring:
+  application:
+    name: discovery-server
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+  tracing:
+    sampling:
+      probability: 1.0
+
+  zipkin:
+    tracing:
+      endpoint: https://xray.us-east-1.amazonaws.com

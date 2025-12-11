@@ -1,0 +1,27 @@
+spring:
+  application:
+    name: search-service
+  elasticsearch:
+    uris: http://elasticsearch:9200
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: search-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+server:
+  port: 8082
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus

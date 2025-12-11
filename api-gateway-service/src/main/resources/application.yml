@@ -1,0 +1,52 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway-service
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: metadata-service
+          uri: lb://METADATA-SERVICE
+          predicates:
+            - Path=/api/metadata/**
+          filters:
+            - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: metadataServiceBreaker
+                fallbackUri: forward:/fallback
+        
+        - id: search-service
+          uri: lb://SEARCH-SERVICE
+          predicates:
+            - Path=/api/search/**
+          filters:
+            - StripPrefix=2
+            - name: CircuitBreaker
+              args:
+                name: searchServiceBreaker
+                fallbackUri: forward:/fallback
+
+        - id: ingestion-worker
+          uri: lb://INGESTION-WORKER-SERVICE
+          predicates:
+            - Path=/api/upload/**
+          filters:
+            - StripPrefix=2
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway

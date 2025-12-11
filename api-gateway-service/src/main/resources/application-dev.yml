@@ -1,0 +1,39 @@
+# ==========================================
+# This is Dummy Data for Dev server how it is worked okkk
+#Routes do not change between local, dev, or prod. 
+#We use lb://SERVICE-ID routing in API Gateway, which resolves service locations through Eureka Discovery Server.
+#only the Eureka endpoint changes using profile-specific configurations (local/dev/prod), not the route definitions.
+
+# ==========================================
+
+spring:
+  application:
+    name: api-gateway-service
+
+  kafka:
+    bootstrap-servers:
+      - b-1.msk-devcluster.abcd.kafka.us-east-1.amazonaws.com:9092
+      - b-2.msk-devcluster.abcd.kafka.us-east-1.amazonaws.com:9092
+
+  redis:
+    host: sonymusic-dev-redis.abcd.use1.cache.amazonaws.com
+    port: 6379
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-dev:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,gateway,prometheus
+
+  tracing:
+    sampling:
+      probability: 1.0
+
+  zipkin:
+    tracing:
+      endpoint: https://xray.us-east-1.amazonaws.com

@@ -1,0 +1,19 @@
+spring:
+  application:
+    name: ingestion-worker-service
+  kafka:
+    bootstrap-servers: kafka:9092
+    consumer:
+      group-id: ingestion-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-server:8761/eureka/
+
+server:
+  port: 8083

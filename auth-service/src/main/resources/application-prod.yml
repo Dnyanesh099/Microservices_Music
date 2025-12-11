@@ -1,0 +1,39 @@
+# ==========================================
+# This is Dummy Data for Prod server how it is worked okkk
+# ==========================================
+
+spring:
+  application:
+    name: auth-service
+
+  datasource:
+    url: jdbc:postgresql://sonymusic-prod-db.abcdefgh1234.us-east-1.rds.amazonaws.com:5432/sonymusic_prod
+    username: prod_user
+    password: prod_password
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://discovery-prod:8761/eureka/
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+
+  tracing:
+    sampling:
+      probability: 1.0
+
+  zipkin:
+    tracing:
+      endpoint: https://xray.us-east-1.amazonaws.com

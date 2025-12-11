@@ -1,0 +1,2 @@
+com\sonymusic\ingestion\IngestionWorkerApplication.class
+com\sonymusic\ingestion\worker\IngestionListener.class

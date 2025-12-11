@@ -1,0 +1,5 @@
+com\sonymusic\auth\AuthServiceApplication.class
+com\sonymusic\auth\controller\AuthController.class
+com\sonymusic\auth\dto\AuthRequest.class
+com\sonymusic\auth\config\AuthConfig.class
+com\sonymusic\auth\service\JwtService.class

@@ -1,0 +1,13 @@
+com\sonymusic\metadata\dto\TrackDTO.class
+com\sonymusic\metadata\repository\AlbumRepository.class
+com\sonymusic\metadata\mapper\TrackMapper.class
+com\sonymusic\metadata\controller\MetadataController.class
+com\sonymusic\metadata\repository\ArtistRepository.class
+com\sonymusic\metadata\repository\TrackRepository.class
+com\sonymusic\metadata\event\TrackCreatedEvent.class
+com\sonymusic\metadata\domain\Album.class
+com\sonymusic\metadata\MetadataServiceApplication.class
+com\sonymusic\metadata\mapper\TrackMapperImpl.class
+com\sonymusic\metadata\domain\Artist.class
+com\sonymusic\metadata\domain\Track.class
+com\sonymusic\metadata\service\MetadataService.class

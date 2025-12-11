@@ -1,0 +1,5 @@
+com\sonymusic\search\document\TrackDocument.class
+com\sonymusic\search\listener\SearchEventListener.class
+com\sonymusic\search\controller\SearchController.class
+com\sonymusic\search\SearchServiceApplication.class
+com\sonymusic\search\repository\TrackSearchRepository.class
