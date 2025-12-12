@@ -46,7 +46,18 @@ eureka:
       defaultZone: http://discovery-server:8761/eureka/
 
 management:
+  endpoint:
+    prometheus:
+      enabled: true
+    health:
+      show-details: always
+
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,gateway
+        include: health,info,prometheus,metrics
+
+  metrics:
+    export:
+      prometheus:
+        enabled: true

@@ -8,7 +8,6 @@ import com.sonymusic.metadata.repository.TrackRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -50,13 +49,14 @@ public class MetadataService {
         track = trackRepository.save(track);
 
         // 4. Publish Event
-        TrackCreatedEvent event = new TrackCreatedEvent("TRACK_CREATED", track.getIsrc(), track.getTitle(), track.getAlbumId());
+        TrackCreatedEvent event = new TrackCreatedEvent("TRACK_CREATED", track.getIsrc(), track.getTitle(),
+                track.getAlbumId());
         kafkaTemplate.send("track-events", track.getIsrc(), event);
         log.info("Published track-created event for ISRC: {}", track.getIsrc());
 
         return trackMapper.toDTO(track);
     }
-    
+
     @Cacheable(value = "tracks", key = "#isrc")
     public TrackDTO getTrackByIsrc(String isrc) {
         return trackRepository.findByIsrc(isrc)
